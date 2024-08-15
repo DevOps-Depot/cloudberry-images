@@ -1,0 +1,71 @@
+name: Docker Builds, Validation and Pushes to AWS ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/cbdb/build/rocky9/**'
+
+  workflow_dispatch: # Manual trigger
+
+jobs:
+
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      rocky9_changed:    ${{ steps.platform-filter.outputs.rocky9 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: platform-filter
+        with:
+          filters: |
+            rocky9:
+              - 'docker/cbdb/build/rocky9/**'
+
+  cbdb-build-rocky9:
+    needs: changes
+    if: ${{ needs.changes.outputs.rocky9_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        run: aws ecr-public get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_PUBLIC_ENDPOINT }}
+
+      - name: Build Docker image for cbdb-build-rocky9
+        id: build
+        run: docker build -t cbdb-build-rocky9:latest ./docker/cbdb/build/rocky9
+
+      - name: Run Testinfra Tests
+        id: test
+        run: |
+          # Run the container with the hostname and keep it alive using a sleep command
+          docker run -d -h cdw --name cbdb-build-rocky9-test cbdb-build-rocky9:latest bash -c "sleep 30"
+          # Execute the tests within the running container
+          docker exec cbdb-build-rocky9-test pytest --cache-clear --disable-warnings -p no:warnings /tests/testinfra/test_cloudberry_db_env.py
+
+      - name: Remove Test Container
+        if: always()
+        run: docker rm -f cbdb-build-rocky9-test
+
+      - name: Tag and Push Docker image for cbdb-build-rocky9
+        if: steps.test.outcome == 'success'
+        run: |
+          docker tag cbdb-build-rocky9:latest ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/build/rocky9:latest
+          docker push ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/build/rocky9:latest
