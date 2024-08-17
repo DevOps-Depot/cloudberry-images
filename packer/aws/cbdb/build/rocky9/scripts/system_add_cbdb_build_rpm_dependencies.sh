@@ -34,6 +34,7 @@ sudo dnf install -y \
      bzip2 \
      bzip2-devel \
      cmake3 \
+     createrepo_c \
      ed \
      flex \
      gcc \
@@ -65,6 +66,7 @@ sudo dnf install -y \
      perl-ExtUtils-Embed \
      perl-Test-Simple \
      perl-core \
+     pinentry \
      python3-devel \
      python3-lxml \
      python3-psutil \
@@ -72,6 +74,8 @@ sudo dnf install -y \
      python3-pyyaml \
      readline-devel \
      rpm-build \
+     rpm-sign \
+     rpmdevtools \
      rsync \
      sudo \
      tar \
@@ -86,10 +90,6 @@ sudo dnf install -y --enablerepo=crb \
      libuv-devel \
      libyaml-devel \
      perl-IPC-Run
-
-# Install development tools and dependencies from EPEL repository
-sudo dnf install -y --enablerepo=epel \
-     xerces-c-devel
 
 # Footer indicating the script execution is complete
 echo "system_add_cbdb_build_rpm_dependencies.sh execution completed."

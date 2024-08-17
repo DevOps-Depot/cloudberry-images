@@ -9,19 +9,24 @@ def test_etc_hosts_file(host):
 
 def test_packages_installed(host):
     """Check that all necessary packages are installed."""
-    packages = [
-        "git", "vim-common", "tmux", "wget", "the_silver_searcher", "bat", "htop",
-        "apr-devel", "autoconf", "bison", "bzip2", "bzip2-devel", "cmake", "ed",
-        "flex", "gcc", "gcc-c++", "glibc-langpack-en", "initscripts", "iproute",
-        "java-1.8.0-openjdk", "java-1.8.0-openjdk-devel", "krb5-devel", "less",
-        "libcurl-devel", "libevent-devel", "libuuid-devel", "libxml2-devel",
-        "libzstd-devel", "lz4", "lz4-devel", "m4", "nmap-ncat", "net-tools", "openldap-devel",
-        "openssh-clients", "openssh-server", "openssl-devel", "pam-devel", "passwd",
-        "perl", "perl-ExtUtils-Embed", "perl-Test-Simple", "python3-devel",
-        "python3-lxml", "python3-psutil", "python3-pytest", "python3-pyyaml",
-        "readline-devel", "rpm-build", "rsync", "sudo", "tar", "unzip", "util-linux", "which",
-        "zlib-devel", "libuv-devel", "libyaml-devel", "perl-IPC-Run", "xerces-c-devel"
-    ]
+    packages = [ "git", "vim-common", "tmux", "wget",
+                 "the_silver_searcher", "bat", "htop", "apr-devel",
+                 "autoconf", "bison", "bzip2", "bzip2-devel", "cmake",
+                 "createrepo_c", "ed", "flex", "gcc", "gcc-c++",
+                 "glibc-langpack-en", "initscripts", "iproute",
+                 "java-1.8.0-openjdk", "java-1.8.0-openjdk-devel",
+                 "krb5-devel", "less", "libcurl-devel",
+                 "libevent-devel", "libuuid-devel", "libxml2-devel",
+                 "libzstd-devel", "lz4", "lz4-devel", "m4",
+                 "nmap-ncat", "net-tools", "openldap-devel",
+                 "openssh-clients", "openssh-server", "openssl-devel",
+                 "pam-devel", "passwd", "perl", "perl-ExtUtils-Embed",
+                 "perl-Test-Simple", "pinentry", "python3-devel",
+                 "python3-lxml", "python3-psutil", "python3-pytest",
+                 "python3-pyyaml", "readline-devel", "rpm-build",
+                 "rpm-sign", "rpmdevtools", "rsync", "sudo", "tar",
+                 "unzip", "util-linux", "which", "zlib-devel",
+                 "libuv-devel", "libyaml-devel", "perl-IPC-Run" ]
     for package in packages:
         pkg = host.package(package)
         assert pkg.is_installed, f"Package {package} is not installed"
