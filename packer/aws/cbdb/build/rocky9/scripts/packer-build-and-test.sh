@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 VM_TYPE=$(basename "$(dirname "$PROJECT_ROOT")")
 OS_NAME="$(basename "$PROJECT_ROOT")"
-REGION="us-west-1"
+REGION="us-east-1"
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
 
 # Variables
