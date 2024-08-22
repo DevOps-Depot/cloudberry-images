@@ -11,27 +11,26 @@ sudo dnf makecache
 
 # Install EPEL repository and import GPG keys for EPEL and Rocky Linux
 sudo dnf install -y epel-release
-sudo rpm --import http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9
-sudo rpm --import https://dl.rockylinux.org/pub/sig/9/cloud/x86_64/cloud-kernel/RPM-GPG-KEY-Rocky-SIG-Cloud
+sudo rpm --import http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8
+sudo rpm --import https://dl.rockylinux.org/pub/sig/8/cloud/x86_64/cloud-kernel/RPM-GPG-KEY-Rocky-SIG-Cloud
 
 # Update the package cache again to include the new repository
 sudo dnf makecache
 
-# Disable EPEL and Cisco OpenH264 repositories to avoid conflicts
-sudo dnf config-manager --disable epel --disable epel-cisco-openh264
+# Disable EPEL repositories to avoid conflicts
+sudo dnf config-manager --disable epel
 
 # Install basic utilities
 sudo dnf install -y git vim tmux wget
 
 # Install additional tools from EPEL repository
-sudo dnf install -y --enablerepo=epel the_silver_searcher bat htop
+sudo dnf install -y --enablerepo=epel the_silver_searcher htop
 
 # Install development tools and dependencies
 sudo dnf install -y \
      apr-devel \
      autoconf \
      bison \
-     bzip2 \
      bzip2-devel \
      cmake3 \
      createrepo_c \
@@ -40,6 +39,7 @@ sudo dnf install -y \
      gcc \
      gcc-c++ \
      glibc-langpack-en \
+     glibc-locale-source \
      initscripts \
      iproute \
      java-1.8.0-openjdk \
@@ -53,6 +53,7 @@ sudo dnf install -y \
      libzstd-devel \
      lz4 \
      lz4-devel \
+     make \
      m4 \
      nc \
      net-tools \
@@ -66,18 +67,16 @@ sudo dnf install -y \
      perl-Env \
      perl-ExtUtils-Embed \
      perl-Test-Simple \
-     perl-core \
      pinentry \
+     procps-ng \
+     python3 \
      python3-devel \
-     python3-lxml \
-     python3-psutil \
-     python3-pytest \
-     python3-pyyaml \
      readline-devel \
      rpm-build \
      rpm-sign \
      rpmdevtools \
      rsync \
+     sshpass \
      sudo \
      tar \
      unzip \
@@ -86,8 +85,8 @@ sudo dnf install -y \
      which \
      zlib-devel
 
-# Install development tools and dependencies from CRB repository
-sudo dnf install -y --enablerepo=crb \
+# Install development tools and dependencies from Devel repository
+sudo dnf install -y --enablerepo=devel \
      libuv-devel \
      libyaml-devel \
      perl-IPC-Run

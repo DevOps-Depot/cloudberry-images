@@ -26,7 +26,7 @@ done
 # Default values for optional parameters
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-REGION="us-west-1"
+REGION="us-east-1"
 INSTANCE_SIZE="t3.medium"
 TESTS_PATH="tests/testinfra/test_vm.py"
 CLEANUP_ON_ERROR=true

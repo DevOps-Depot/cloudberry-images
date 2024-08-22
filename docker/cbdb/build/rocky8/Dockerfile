@@ -17,8 +17,8 @@
 #   docker run -h cdw -it cloudberry-db-env
 # ----------------------------------------------------------------------
 
-# Base image: Rocky Linux 9
-FROM rockylinux/rockylinux:9
+# Base image: Rocky Linux 8
+FROM rockylinux/rockylinux:8
 
 # Argument for configuring the timezone
 ARG TIMEZONE_VAR="America/Los_Angeles"
@@ -38,63 +38,60 @@ ENV USER=gpadmin
 # ----------------------------------------------------------------------
 RUN dnf makecache && \
     dnf install -y \
-        yum-utils \
         epel-release \
         git && \
-    yum-config-manager --disable epel-cisco-openh264 && \
     dnf makecache && \
-    yum-config-manager --disable epel && \
-    dnf install -y --enablerepo=epel \
+    dnf config-manager --disable epel && \
+    dnf install -y -d0 --enablerepo=epel \
         the_silver_searcher \
-        bat \
         htop && \
-    dnf install -y \
+    dnf install -y -d0 \
+        apr-devel \
+        autoconf \
         bison \
-        cmake3 \
-        ed \
+        bzip2-devel \
+        diffutils \
         flex \
         gcc \
         gcc-c++ \
         glibc-langpack-en \
         glibc-locale-source \
-        initscripts \
         iproute \
-        less \
+        krb5-devel \
+        libcurl-devel \
+        libevent-devel \
+        libuuid-devel \
+        libxml2-devel \
+        libzstd-devel \
+        lz4 \
+        lz4-devel \
+        make \
         m4 \
+        nc \
         net-tools \
+        openldap-devel \
         openssh-clients \
         openssh-server \
-        perl \
+        openssl-devel \
+        pam-devel \
+        passwd \
+        perl-Env \
+        perl-ExtUtils-Embed \
+        perl-Test-Simple \
+        procps-ng \
+        python3 \
+        python3-devel \
+        readline-devel \
         rsync \
+        sshpass \
         sudo \
         tar \
         unzip \
         util-linux-ng \
         wget \
-        sshpass \
-        which && \
-    dnf install -y \
-        apr-devel \
-        bzip2-devel \
-        krb5-devel \
-        libcurl-devel \
-        libevent-devel \
-        libxml2-devel \
-        libuuid-devel \
-        libzstd-devel \
-        lz4 \
-        lz4-devel \
-        openldap-devel \
-        openssl-devel \
-        pam-devel \
-        perl-ExtUtils-Embed \
-        perl-Test-Simple \
-        perl-core \
-        python3-devel \
-        python3-pytest \
-        readline-devel \
+        which \
         zlib-devel && \
-    dnf install -y --enablerepo=crb \
+    dnf install -y -d0 --enablerepo=devel \
         libuv-devel \
         libyaml-devel \
         perl-IPC-Run && \
@@ -118,7 +115,7 @@ RUN cp /tmp/90-cbdb-limits /etc/security/limits.d/90-cbdb-limits && \
     /usr/sbin/groupadd gpadmin && \
     /usr/sbin/useradd gpadmin -g gpadmin -G wheel && \
     setcap cap_net_raw+ep /usr/bin/ping && \
-    echo 'gpadmin        ALL=(ALL)       NOPASSWD: ALL' > /etc/sudoers.d/90-gpadmin && \
+    echo 'gpadmin ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-gpadmin && \
     echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cbdb/greenplum_path.sh ]; then\n  source /usr/local/cbdb/greenplum_path.sh\nfi' >> /home/gpadmin/.bashrc && \
     ssh-keygen -A && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \

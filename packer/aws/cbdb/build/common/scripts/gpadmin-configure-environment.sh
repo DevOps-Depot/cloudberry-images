@@ -16,16 +16,15 @@ wget -nv -q https://raw.githubusercontent.com/tony/tmux-config/master/.tmux.conf
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" --unattended
 
 # Add Cloudberry entries to gpadmin's .bashrc
-echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cbdb/greenplum_path.sh ]; then\n  source /usr/local/cbdb/greenplum_path.sh\nfi' >> /home/gpadmin/.bashrc
-echo -e 'if [ -f /opt/src/cloudberrydb/gpAux/gpdemo/gpdemo-env.sh ]; then\n  source /opt/src/cloudberrydb/gpAux/gpdemo/gpdemo-env.sh\nfi' >> /home/gpadmin/.bashrc
+echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cloudberry/greenplum_path.sh ]; then\n  source /usr/local/cloudberry/greenplum_path.sh\nfi' >> /home/gpadmin/.bashrc
+
+# Ensure the .ssh directory exists
+mkdir -p /home/gpadmin/.ssh
 
 # Generate SSH key pair for gpadmin user if it doesn't already exist
 if [ ! -f /home/gpadmin/.ssh/id_rsa ]; then
   ssh-keygen -t rsa -b 2048 -f /home/gpadmin/.ssh/id_rsa -N ""
 fi
-
-# Ensure the .ssh directory exists
-mkdir -p /home/gpadmin/.ssh
 
 # Add the public key to authorized_keys to enable passwordless SSH access
 cat /home/gpadmin/.ssh/id_rsa.pub >> /home/gpadmin/.ssh/authorized_keys

@@ -1,4 +1,28 @@
 #!/bin/bash
+#
+# Script Name: packer-build-and-test.sh
+#
+# Description:
+# This script automates the process of validating, building, testing, and
+# publishing an Amazon Machine Image (AMI) using Packer. It also handles
+# the creation and cleanup of associated AWS resources like EC2 instances,
+# key pairs, and security groups.
+#
+# Usage:
+# ./packer-build-and-test.sh
+#
+# Prerequisites:
+# - AWS CLI configured with appropriate credentials
+# - Packer installed
+# - jq, pytest, nc, and curl installed
+# - The script assumes the presence of a Packer HCL file (main.pkr.hcl) in
+#   the current directory.
+#
+# Notes:
+# - Ensure you have the necessary IAM permissions to create and manage EC2
+#   instances, AMIs, and security groups.
+# - The script cleans up resources upon completion or failure to avoid
+#   unnecessary costs.
 
 # Enable strict mode for better error handling
 set -euo pipefail
@@ -6,7 +30,9 @@ set -euo pipefail
 # Header indicating the script execution
 echo "Executing packer-build-and-test.sh..."
 
-# Function to check if a command is available
+# Function to check if a command is available in the system
+# Arguments:
+#   $1 - Name of the command to check
 command_exists() {
   command -v "$1" &> /dev/null
 }
@@ -15,22 +41,43 @@ command_exists() {
 for cmd in pytest packer aws jq nc curl; do
   if ! command_exists "$cmd"; then
     echo "$cmd could not be found. Please install $cmd to proceed."
+    case "$cmd" in
+        pytest) echo "Install with: pip install pytest" ;;
+        packer) echo "Install with: Download from https://www.packer.io/downloads" ;;
+        aws) echo "Install with: pip install awscli" ;;
+        jq) echo "Install with: sudo apt-get install jq" ;;
+        nc) echo "Install with: sudo apt-get install netcat" ;;
+        curl) echo "Install with: sudo apt-get install curl" ;;
+    esac
     exit 1
   fi
 done
 
-# Get the directory of this script
+# Get the directory of this script and the current working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-VM_TYPE=$(basename "$(dirname "$PROJECT_ROOT")")
-OS_NAME="$(basename "$PROJECT_ROOT")"
-REGION="us-east-1"
-TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+CURRENT_DIR="$(pwd)"
 
-# Variables
-KEY_NAME="key-${VM_TYPE}-${OS_NAME}-${TIMESTAMP}"
-PRIVATE_KEY_FILE="${SCRIPT_DIR}/${KEY_NAME}.pem"
-SECURITY_GROUP_NAME="${VM_TYPE}-${OS_NAME}-${TIMESTAMP}-sg"
+# Define the path to the Packer HCL file
+HCL_FILE="${CURRENT_DIR}/main.pkr.hcl"
+
+# Check if the HCL file exists
+if [ ! -f "$HCL_FILE" ]; then
+  echo "Error: Packer HCL file not found at ${HCL_FILE}. Aborting."
+  exit 1
+fi
+
+# Derive OS_NAME and VM_TYPE from the HCL file's location
+VM_TYPE=$(basename "$(dirname "$CURRENT_DIR")")  # VM_TYPE is the parent directory name
+OS_NAME=$(basename "$CURRENT_DIR")  # OS_NAME is the current directory name
+
+# Define AWS region and timestamp for unique naming
+REGION="us-east-1"  # AWS region where the AMI will be created and tested
+TIMESTAMP=$(date +"%Y%m%d-%H%M%S")  # Timestamp for unique resource naming
+
+# Variables for AWS resources
+KEY_NAME="key-${VM_TYPE}-${OS_NAME}-${TIMESTAMP}"  # Name for the temporary key pair
+PRIVATE_KEY_FILE="${CURRENT_DIR}/${KEY_NAME}.pem"  # Path to the generated private key file
+SECURITY_GROUP_NAME="${VM_TYPE}-${OS_NAME}-${TIMESTAMP}-sg"  # Name for the temporary security group
 SECURITY_GROUP_ID=""
 INSTANCE_ID=""
 AMI_ID=""
@@ -39,7 +86,12 @@ AMI_NAME=""
 CLEANED_UP=false
 BLOCK_PUBLIC_ACCESS_WAS_ENABLED=false
 
-# Function to rename AMI based on the test result
+# Variable to track successful execution
+SUCCESS=false
+
+# Function to rename the AMI based on the test result
+# Arguments:
+#   $1 - Result of the test (e.g., "PASSED", "FAILED")
 rename_ami() {
   local result=$1
   if [ -n "${AMI_ID}" ]; then
@@ -50,7 +102,7 @@ rename_ami() {
   fi
 }
 
-# Function to check if block public access is enabled
+# Function to check if block public access for AMIs is enabled
 check_block_public_access() {
   echo "Checking if block public access for AMIs is enabled..."
   BLOCK_PUBLIC_ACCESS_STATE=$(aws ec2 get-image-block-public-access-state --region ${REGION} --output text)
@@ -63,7 +115,7 @@ check_block_public_access() {
   fi
 }
 
-# Function to disable image block public access
+# Function to disable block public access for AMIs if it was previously enabled
 disable_image_block_public_access() {
   if [ "$BLOCK_PUBLIC_ACCESS_WAS_ENABLED" == "true" ]; then
     echo "Disabling block public access for AMIs..."
@@ -72,7 +124,7 @@ disable_image_block_public_access() {
   fi
 }
 
-# Function to re-enable image block public access
+# Function to re-enable block public access for AMIs if it was originally enabled
 enable_image_block_public_access() {
   if [ "$BLOCK_PUBLIC_ACCESS_WAS_ENABLED" == "true" ]; then
     echo "Re-enabling block public access for AMIs..."
@@ -123,9 +175,21 @@ cleanup() {
   fi
   CLEANED_UP=true
   echo "Cleanup completed."
+
+  # Print final success message if everything was successful
+  if [ "$SUCCESS" = true ]; then
+    echo "-----------------------------------"
+    echo "AMI Build and Test Completed"
+    echo "-----------------------------------"
+    echo "AMI ID: ${AMI_ID}"
+    echo "AMI Name: ${AMI_NAME}"
+    echo "Region: ${REGION}"
+    echo "This AMI has passed all tests and is now public."
+    echo "-----------------------------------"
+  fi
 }
 
-# Function to handle errors
+# Error handler to rename the AMI as "FAILED" and perform cleanup
 error_handler() {
   echo "An error occurred. Running cleanup and renaming AMI if necessary."
   rename_ami "FAILED"
@@ -133,57 +197,55 @@ error_handler() {
   exit 1
 }
 
-# Set trap to clean up on EXIT and ERR signals
+# Trap errors and EXIT signals to ensure cleanup is performed
 trap cleanup EXIT
 trap error_handler ERR
 
-# Validate the Packer template
+# Step 1: Validate the Packer template
 echo "Validating Packer template..."
-if ! packer validate -var "vm_type=${VM_TYPE}" -var "os_name=${OS_NAME}" "${PROJECT_ROOT}/main.pkr.hcl"; then
+if ! packer validate -var "vm_type=${VM_TYPE}" -var "os_name=${OS_NAME}" "${HCL_FILE}"; then
   echo "Packer template validation failed. Aborting."
   exit 1
 fi
 
-# Create a new key pair
+# Step 2: Create a new key pair for SSH access
 echo "Creating new key pair..."
 aws ec2 create-key-pair --key-name ${KEY_NAME} --query 'KeyMaterial' --output text --region ${REGION} > ${PRIVATE_KEY_FILE}
 chmod 400 ${PRIVATE_KEY_FILE}
-
 echo "Created key pair ${KEY_NAME} and saved to ${PRIVATE_KEY_FILE}"
 
-# Build the Packer template
+# Step 3: Build the AMI using the Packer template
 echo "Building the Packer template..."
-packer build -var vm_type=${VM_TYPE} -var os_name=${OS_NAME} -var key_name=${KEY_NAME} -var private_key_file=${PRIVATE_KEY_FILE} "${PROJECT_ROOT}/main.pkr.hcl"
+packer build -var vm_type=${VM_TYPE} -var os_name=${OS_NAME} -var key_name=${KEY_NAME} -var private_key_file=${PRIVATE_KEY_FILE} "${HCL_FILE}"
 
-# Parse the AMI ID from the manifest file
+# Step 4: Parse the AMI ID from the Packer manifest file
 echo "Parsing the AMI ID from packer-manifest.json..."
 AMI_ID=$(jq -r '.builds[-1].artifact_id' packer-manifest.json | cut -d':' -f2)
 
-# Retrieve the AMI name
+# Step 5: Retrieve the AMI name
 AMI_NAME=$(aws ec2 describe-images --image-ids ${AMI_ID} --query "Images[*].Name" --output text --region ${REGION})
 
-# Retrieve local IP address to restrict SSH access to the current machine
+# Step 6: Retrieve local IP address to restrict SSH access to the current machine
 LOCAL_IP=$(curl -s http://checkip.amazonaws.com)/32
 
-# Create a new security group
+# Step 7: Create a new security group to allow SSH access
 echo "Creating new security group..."
 SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name "${SECURITY_GROUP_NAME}" --description "Security group for ${OS_NAME} ${VM_TYPE}" --region ${REGION} --query 'GroupId' --output text)
 aws ec2 authorize-security-group-ingress --group-id ${SECURITY_GROUP_ID} --protocol tcp --port 22 --cidr ${LOCAL_IP} --region ${REGION}
-
 echo "Created security group ${SECURITY_GROUP_ID} with SSH access for IP ${LOCAL_IP}"
 
-# Start a new EC2 instance using the created AMI
+# Step 8: Start a new EC2 instance using the created AMI
 echo "Starting a new EC2 instance..."
 INSTANCE_ID=$(aws ec2 run-instances --image-id ${AMI_ID} --instance-type t3.medium --key-name ${KEY_NAME} --security-group-ids ${SECURITY_GROUP_ID} --query "Instances[0].InstanceId" --output text --region ${REGION})
 
-# Wait until the instance is running
+# Step 9: Wait until the instance is in the running state
 echo "Waiting for the instance to be in running state..."
 aws ec2 wait instance-running --instance-ids ${INSTANCE_ID} --region ${REGION}
 
-# Retrieve the public DNS name of the instance
+# Step 10: Retrieve the public DNS name of the instance
 HOSTNAME=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --query "Reservations[*].Instances[*].PublicDnsName" --output text --region ${REGION})
 
-# Loop until SSH access is available
+# Step 11: Loop until SSH access is available on the instance
 echo "Waiting for SSH to become available on ${HOSTNAME}..."
 for ((i=1; i<=30; i++)); do
   if nc -zv ${HOSTNAME} 22 2>&1 | grep -q 'succeeded'; then
@@ -191,7 +253,7 @@ for ((i=1; i<=30; i++)); do
     break
   else
     echo "SSH is not available yet. Retry $i/30..."
-    sleep 10
+    sleep $((i*2))
   fi
 
   if [ $i -eq 30 ]; then
@@ -202,25 +264,22 @@ for ((i=1; i<=30; i++)); do
   fi
 done
 
-# Run Testinfra tests with warnings suppressed
+# Step 12: Run Testinfra tests on the instance
 echo "Running Testinfra tests..."
-pytest -p no:warnings --hosts=rocky@${HOSTNAME} --ssh-identity-file=${PRIVATE_KEY_FILE} "${PROJECT_ROOT}/tests/testinfra/"
+pytest -p no:warnings --hosts=rocky@${HOSTNAME} --ssh-identity-file=${PRIVATE_KEY_FILE} "${CURRENT_DIR}/tests/testinfra/"
 
-# Rename the AMI to indicate tests have passed
+# Step 13: Rename the AMI to indicate that tests have passed
 rename_ami "PASSED"
 
-# Check and potentially disable block public access for AMIs
+# Step 14: Check and potentially disable block public access for AMIs
 check_block_public_access
 disable_image_block_public_access
 
-# Make the AMI public
+# Step 15: Make the AMI public
 make_ami_public
 
-# Verify the launch permissions of the AMI
+# Step 16: Verify the launch permissions of the AMI
 verify_launch_permissions
 
-# Re-enable block public access for AMIs if it was originally enabled
-enable_image_block_public_access
-
-# Print completion message
-echo "packer-build-and-test.sh execution completed."
+# If the script reaches this point, all operations were successful
+SUCCESS=true

@@ -79,10 +79,10 @@ source "amazon-ebs" "base-cbdb-build-image" {
   instance_type = "t3.2xlarge"
   ## spot_price    = "0.0183"
 
-  # Define the source AMI filter to find the latest Rocky 9 base AMI
+  # Define the source AMI filter to find the latest Rocky 8 base AMI
   source_ami_filter {
     filters = {
-      name                = "Rocky-9-EC2-Base*x86_64"
+      name                = "Rocky-8-EC2-Base*x86_64"
       virtualization-type = "hvm"
     }
     owners      = ["792107900819"]
