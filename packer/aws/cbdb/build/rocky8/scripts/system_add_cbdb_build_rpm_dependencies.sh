@@ -42,8 +42,8 @@ sudo dnf install -y \
      glibc-locale-source \
      initscripts \
      iproute \
-     java-1.8.0-openjdk \
-     java-1.8.0-openjdk-devel \
+     java-11-openjdk \
+     java-11-openjdk-devel \
      krb5-devel \
      less \
      libcurl-devel \
