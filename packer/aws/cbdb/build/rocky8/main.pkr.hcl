@@ -145,6 +145,11 @@ build {
     script = "../common/scripts/system_add_golang.sh"
   }
 
+  # Provisioner to set JAVA_HOME
+  provisioner "shell" {
+    script = "../common/scripts/system_config_java_home.sh"
+  }
+
   provisioner "shell" {
     environment_vars = []
     inline = concat([
