@@ -14,7 +14,7 @@ def test_packages_installed(host):
                  "autoconf", "bison", "bzip2", "bzip2-devel", "cmake",
                  "createrepo_c", "ed", "flex", "gcc", "gcc-c++",
                  "glibc-langpack-en", "initscripts", "iproute",
-                 "java-1.8.0-openjdk", "java-1.8.0-openjdk-devel",
+                 "java-11-openjdk", "java-11-openjdk-devel",
                  "krb5-devel", "less", "libcurl-devel",
                  "libevent-devel", "libuuid-devel", "libxml2-devel",
                  "libzstd-devel", "lz4", "lz4-devel", "m4",
