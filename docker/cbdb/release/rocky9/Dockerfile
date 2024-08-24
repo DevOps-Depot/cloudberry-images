@@ -97,6 +97,7 @@ RUN dnf install -y https://cloudberry-rpm-dev-bucket.s3.amazonaws.com/repo/el9/n
 # environment, and the Cloudberry Database RPM can be installed for
 # testing and functional verification.
 # ----------------------------------------------------------------------
+
 USER gpadmin
 
 CMD ["bash","-c","/tmp/init_system.sh"]
