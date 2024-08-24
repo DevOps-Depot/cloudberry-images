@@ -21,7 +21,6 @@ def test_installed_packages(host):
         "wget",
         "openssl-devel",
         "python36-devel",
-        "python3-pytest",
         "readline-devel",
         "zlib-devel",
         "libcurl-devel",
