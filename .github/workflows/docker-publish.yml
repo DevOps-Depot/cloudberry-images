@@ -60,6 +60,9 @@ jobs:
           tags: |
             cbdb-build-rocky9:latest
 
+      - name: List Docker images
+        run: docker images
+
       - name: Run Testinfra Tests
         id: test
         run: |
