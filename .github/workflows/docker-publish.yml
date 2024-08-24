@@ -1,45 +1,49 @@
-name: Docker Builds, Validation and Pushes to AWS ECR
+name: Docker Builds, Validation, and Pushes to AWS ECR
 
 on:
   push:
     branches:
       - main
     paths:
+      - 'docker/cbdb/build/rocky8/**'
       - 'docker/cbdb/build/rocky9/**'
 
   workflow_dispatch: # Manual trigger
 
 jobs:
-
-  changes:
+  build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      rocky9_changed:    ${{ steps.platform-filter.outputs.rocky9 }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: platform-filter
-        with:
-          filters: |
-            rocky9:
-              - 'docker/cbdb/build/rocky9/**'
-
-  cbdb-build-rocky9:
-    needs: changes
-    if: ${{ needs.changes.outputs.rocky9_changed == 'true' }}
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: ['rocky8', 'rocky9']
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Determine if platform changed
+        id: platform-filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            rocky8:
+              - 'docker/cbdb/build/rocky8/**'
+            rocky9:
+              - 'docker/cbdb/build/rocky9/**'
+
+      - name: Skip if not relevant
+        if: ${{ steps.platform-filter.outputs[matrix.platform] != 'true' }}
+        run: echo "Skipping because the changes do not affect this platform"
+
       - name: Login to Docker Hub
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Configure AWS credentials
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -47,41 +51,44 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Set up Docker Buildx
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Amazon ECR Public
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         run: |
           aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
-      - name: Build Docker image for cbdb-build-rocky9
+      - name: Build Docker image for cbdb-build-${{ matrix.platform }}
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         uses: docker/build-push-action@v6
         with:
-          context: ./docker/cbdb/build/rocky9
+          context: ./docker/cbdb/build/${{ matrix.platform }}
           push: false  # Do not push to registry yet
           load: true   # Load the image into the local Docker daemon
           tags: |
-            cbdb-build-rocky9:latest
+            cbdb-build-${{ matrix.platform }}:latest
 
       - name: List Docker images
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         run: docker images
 
       - name: Run Testinfra Tests
+        if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         id: test
         run: |
-          # Run the container with the hostname and keep it alive using a sleep command
-          docker run -d -h cdw --name cbdb-build-rocky9-test cbdb-build-rocky9:latest bash -c "sleep 30"
-          # Execute the tests within the running container
-          docker exec cbdb-build-rocky9-test pytest --cache-clear --disable-warnings -p no:warnings /tests/testinfra/test_cloudberry_db_env.py
+          docker run -d -h cdw --name cbdb-build-${{ matrix.platform }}-test cbdb-build-${{ matrix.platform }}:latest bash -c "sleep 30"
+          docker exec cbdb-build-${{ matrix.platform }}-test pytest --cache-clear --disable-warnings -p no:warnings /tests/testinfra/test_cloudberry_db_env.py
 
       - name: Remove Test Container
-        if: always()
-        run: docker rm -f cbdb-build-rocky9-test
+        if: always() && steps.platform-filter.outputs[matrix.platform] == 'true'
+        run: docker rm -f cbdb-build-${{ matrix.platform }}-test
 
       - name: Retag and Push Docker image to ECR
         if: steps.test.outcome == 'success'
         uses: docker/build-push-action@v6
         with:
-          context: ./docker/cbdb/build/rocky9
+          context: ./docker/cbdb/build/${{ matrix.platform }}
           push: true
           tags: |
-            ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/build/rocky9:latest
+            ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/build/${{ matrix.platform }}:latest
