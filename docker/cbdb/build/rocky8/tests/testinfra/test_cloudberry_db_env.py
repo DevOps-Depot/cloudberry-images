@@ -37,8 +37,7 @@ def test_installed_packages(host):
         "lz4",
         "openldap-devel",
         "libuv-devel",
-        "libyaml-devel",
-        "xerces-c-devel"
+        "libyaml-devel"
     ]
     for package in packages:
         pkg = host.package(package)
