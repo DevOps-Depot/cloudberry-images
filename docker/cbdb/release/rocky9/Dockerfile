@@ -86,7 +86,7 @@ RUN cp /tmp/90-cbdb-limits /etc/security/limits.d/90-cbdb-limits && \
     localedef -i en_US -f UTF-8 en_US.UTF-8 && \
     echo "LANG=en_US.UTF-8" | tee /etc/locale.conf
 
-RUN dnf install -y https://cloudberry-rpm-dev-bucket.s3.amazonaws.com/repo/el9/noarch/cloudberry-dev-repo-1.0-1.el9.noarch.rpm
+RUN dnf install -y https://cloudberry-rpm-dev-bucket.s3.amazonaws.com/repo/el9/noarch/cloudberry-dev-repo-1.0-1.el9.noarch.rpm && \
     dnf install -y cloudberry-db
 
 # ----------------------------------------------------------------------
