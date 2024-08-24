@@ -27,9 +27,9 @@ jobs:
         with:
           filters: |
             rocky8:
-              - 'docker/cbdb/relase/rocky8/**'
+              - 'docker/cbdb/release/rocky8/**'
             rocky9:
-              - 'docker/cbdb/relase/rocky9/**'
+              - 'docker/cbdb/release/rocky9/**'
 
       - name: Skip if not relevant
         if: ${{ steps.platform-filter.outputs[matrix.platform] != 'true' }}
@@ -59,11 +59,11 @@ jobs:
         run: |
           aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
-      - name: Build Docker image for cbdb-relase-${{ matrix.platform }}
+      - name: Build Docker image for cbdb-release-${{ matrix.platform }}
         if: ${{ steps.platform-filter.outputs[matrix.platform] == 'true' }}
         uses: docker/build-push-action@v6
         with:
-          context: ./docker/cbdb/relase/${{ matrix.platform }}
+          context: ./docker/cbdb/release/${{ matrix.platform }}
           push: true
           tags: |
-            cbdb-relase-${{ matrix.platform }}:latest
+            cbdb-release-${{ matrix.platform }}:latest
