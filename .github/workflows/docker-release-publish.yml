@@ -66,4 +66,4 @@ jobs:
           context: ./docker/cbdb/release/${{ matrix.platform }}
           push: true
           tags: |
-            cbdb-release-${{ matrix.platform }}:latest
+            ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/release/${{ matrix.platform }}:latest
