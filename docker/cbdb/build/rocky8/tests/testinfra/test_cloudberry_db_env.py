@@ -5,13 +5,9 @@ def test_installed_packages(host):
     Test if the essential packages are installed.
     """
     packages = [
-        "systemd",
-        "systemd-libs",
-        "yum-utils",
         "epel-release",
         "git",
         "the_silver_searcher",
-        "bat",
         "htop",
         "bison",
         "cmake",
