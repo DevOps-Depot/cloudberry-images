@@ -10,7 +10,6 @@ def test_installed_packages(host):
         "the_silver_searcher",
         "htop",
         "bison",
-        "cmake",
         "gcc",
         "gcc-c++",
         "glibc-langpack-en",
