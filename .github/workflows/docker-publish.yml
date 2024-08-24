@@ -58,13 +58,13 @@ jobs:
           context: ./docker/cbdb/build/rocky9
           push: false
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/cbdb-build-rocky9:latest
+            cbdb-build-rocky9:latest
 
       - name: Run Testinfra Tests
         id: test
         run: |
           # Run the container with the hostname and keep it alive using a sleep command
-          docker run -d -h cdw --name cbdb-build-rocky9-test ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/cbdb-build-rocky9:latest bash -c "sleep 30"
+          docker run -d -h cdw --name cbdb-build-rocky9-test cbdb-build-rocky9:latest bash -c "sleep 30"
           # Execute the tests within the running container
           docker exec cbdb-build-rocky9-test pytest --cache-clear --disable-warnings -p no:warnings /tests/testinfra/test_cloudberry_db_env.py
 
@@ -72,11 +72,10 @@ jobs:
         if: always()
         run: docker rm -f cbdb-build-rocky9-test
 
-      - name: Push to Amazon ECR
+      - name: Retag and Push Docker image to ECR
         if: steps.test.outcome == 'success'
         uses: docker/build-push-action@v6
         with:
-          context: ./docker/cbdb/build/rocky9
           push: true
           tags: |
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/cbdb-build-rocky9:latest
