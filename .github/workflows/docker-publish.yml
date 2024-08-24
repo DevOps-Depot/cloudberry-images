@@ -56,7 +56,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./docker/cbdb/build/rocky9
-          push: false
+          push: false  # Do not push to registry yet
+          load: true   # Load the image into the local Docker daemon
           tags: |
             cbdb-build-rocky9:latest
 
