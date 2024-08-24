@@ -64,7 +64,7 @@ RUN dnf install -y \
 RUN /usr/sbin/groupadd gpadmin && \
     /usr/sbin/useradd gpadmin -g gpadmin -G wheel && \
     echo 'gpadmin ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-gpadmin && \
-    echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cbdb/greenplum_path.sh ]; then\n  source /usr/local/cbdb/greenplum_path.sh\n  export COORDINATOR_DATA_DIRECTORY=/data1/coordinator/gpseg-1\nfi' >> /home/gpadmin/.bashrc
+    echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cloudberry/greenplum_path.sh ]; then\n  source /usr/local/cloudberry/greenplum_path.sh\n  export COORDINATOR_DATA_DIRECTORY=/data1/coordinator/gpseg-1\nfi' >> /home/gpadmin/.bashrc
 
 # ----------------------------------------------------------------------
 # Copy Configuration Files and Setup the Environment
@@ -86,7 +86,7 @@ RUN cp /tmp/90-cbdb-limits /etc/security/limits.d/90-cbdb-limits && \
     localedef -i en_US -f UTF-8 en_US.UTF-8 && \
     echo "LANG=en_US.UTF-8" | tee /etc/locale.conf
 
-RUN dnf install -y https://cloudberry-rpm-dev-bucket.s3.amazonaws.com/repo/el8/x86_64/cloudberry-dev-repo-1.0-1.el8.x86_64.rpm && \
+RUN dnf install -y https://cloudberry-rpm-dev-bucket.s3.amazonaws.com/repo/el8/noarch/cloudberry-dev-repo-1.0-1.el8.noarch.rpm && \
     dnf install -y cloudberry-db
 
 # ----------------------------------------------------------------------

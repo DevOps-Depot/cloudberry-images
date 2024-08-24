@@ -155,15 +155,15 @@ source /etc/os-release
 
 # Check if Cloudberry Database is installed and display its version
 if rpm -q cloudberry-db > /dev/null 2>&1; then
-    CBDB_VERSION=$(/usr/local/cbdb/bin/postgres --gp-version)
+    CLOUDBERRY_VERSION=$(/usr/local/cloudberry/bin/postgres --gp-version)
 else
-    CBDB_VERSION="Not installed"
+    CLOUDBERRY_VERSION="Not installed"
 fi
 
 cat <<-EOF
 Welcome to the Cloudberry Database Build Environment!
 
-Cloudberry version .. : $CBDB_VERSION
+Cloudberry version .. : $CLOUDBERRY_VERSION
 Container OS ........ : $NAME $VERSION
 User ................ : $(whoami)
 Container hostname .. : $(hostname)
@@ -182,8 +182,8 @@ cat <<-EOF
 Next Steps:
 -----------
 
-- Cloudberry Database is installed in /usr/local/cbdb (linked to /usr/local/cbdb-\$CBDB_VERSION).
-- The 'gpadmin' user's .bashrc automatically sources /usr/local/cbdb/greenplum_path.sh.
+- Cloudberry Database is installed in /usr/local/cloudberry (linked to /usr/local/cloudberry-\$CLOUDBERRY_VERSION).
+- The 'gpadmin' user's .bashrc automatically sources /usr/local/cloudberry/greenplum_path.sh.
 - The default COORDINATOR_DATA_DIRECTORY is set in .bashrc.
 
 Initialize the cluster:
