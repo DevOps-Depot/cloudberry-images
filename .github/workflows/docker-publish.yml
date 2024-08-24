@@ -80,6 +80,7 @@ jobs:
         if: steps.test.outcome == 'success'
         uses: docker/build-push-action@v6
         with:
+          context: ./docker/cbdb/build/rocky9
           push: true
           tags: |
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/cbdb-build-rocky9:latest
