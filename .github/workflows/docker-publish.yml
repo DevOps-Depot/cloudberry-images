@@ -83,4 +83,4 @@ jobs:
           context: ./docker/cbdb/build/rocky9
           push: true
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/cbdb-build-rocky9:latest
+            ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/build/rocky9:latest
