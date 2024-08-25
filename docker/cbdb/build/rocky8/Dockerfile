@@ -123,6 +123,16 @@ RUN cp /tmp/90-cbdb-limits /etc/security/limits.d/90-cbdb-limits && \
     echo "LANG=en_US.UTF-8" | tee /etc/locale.conf && \
     dnf clean all  # Final cleanup to remove unnecessary files
 
+RUN cd && XERCES_LATEST_RELEASE=3.2.5 && \
+    wget -nv "https://dlcdn.apache.org//xerces/c/3/sources/xerces-c-${XERCES_LATEST_RELEASE}.tar.gz" && \
+    echo "$(curl -sL https://dlcdn.apache.org//xerces/c/3/sources/xerces-c-3.2.5.tar.gz.sha256)" | sha256sum -c - && \
+    tar xf "xerces-c-${XERCES_LATEST_RELEASE}.tar.gz"; rm "xerces-c-${XERCES_LATEST_RELEASE}.tar.gz" && \
+    cd xerces-c-${XERCES_LATEST_RELEASE} && \
+    ./configure --prefix=/usr/local/xerces-c && \
+    make -j$(nproc) && \
+    make check && \
+    make install -C ~/xerces-c-${XERCES_LATEST_RELEASE}
+
 # Install testinfra via pip
 RUN pip3 install pytest-testinfra
 
