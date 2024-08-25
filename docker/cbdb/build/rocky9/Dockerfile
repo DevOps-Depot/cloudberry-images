@@ -38,12 +38,11 @@ ENV USER=gpadmin
 # ----------------------------------------------------------------------
 RUN dnf makecache && \
     dnf install -y \
-        yum-utils \
         epel-release \
         git && \
-    yum-config-manager --disable epel-cisco-openh264 && \
+    dnf config-manager --disable epel-cisco-openh264 && \
     dnf makecache && \
-    yum-config-manager --disable epel && \
+    dnf config-manager --disable epel && \
     dnf install -y --enablerepo=epel \
         the_silver_searcher \
         bat \
@@ -98,7 +97,17 @@ RUN dnf makecache && \
         libuv-devel \
         libyaml-devel \
         perl-IPC-Run && \
-    dnf clean all  # Clean up DNF cache after package installations
+    dnf clean all && \
+    cd && XERCES_LATEST_RELEASE=3.2.5 && \
+    wget -nv "https://dlcdn.apache.org//xerces/c/3/sources/xerces-c-${XERCES_LATEST_RELEASE}.tar.gz" && \
+    echo "$(curl -sL https://dlcdn.apache.org//xerces/c/3/sources/xerces-c-3.2.5.tar.gz.sha256)" | sha256sum -c - && \
+    tar xf "xerces-c-${XERCES_LATEST_RELEASE}.tar.gz"; rm "xerces-c-${XERCES_LATEST_RELEASE}.tar.gz" && \
+    cd xerces-c-${XERCES_LATEST_RELEASE} && \
+    ./configure --prefix=/usr/local/xerces-c && \
+    make -j$(nproc) && \
+    make check && \
+    make install -C ~/xerces-c-${XERCES_LATEST_RELEASE} && \
+    rm ~/xerces-c*
 
 # ----------------------------------------------------------------------
 # Copy Configuration Files and Setup the Environment
@@ -118,7 +127,7 @@ RUN cp /tmp/90-cbdb-limits /etc/security/limits.d/90-cbdb-limits && \
     /usr/sbin/groupadd gpadmin && \
     /usr/sbin/useradd gpadmin -g gpadmin -G wheel && \
     setcap cap_net_raw+ep /usr/bin/ping && \
-    echo 'gpadmin        ALL=(ALL)       NOPASSWD: ALL' > /etc/sudoers.d/90-gpadmin && \
+    echo 'gpadmin ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-gpadmin && \
     echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cbdb/greenplum_path.sh ]; then\n  source /usr/local/cbdb/greenplum_path.sh\nfi' >> /home/gpadmin/.bashrc && \
     ssh-keygen -A && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
