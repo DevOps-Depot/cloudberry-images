@@ -105,7 +105,7 @@ RUN dnf makecache && \
     make -j$(nproc) && \
     make check && \
     make install -C ~/xerces-c-${XERCES_LATEST_RELEASE} && \
-    rm ~/xerces-c*
+    rm -rf ~/xerces-c*
 
 # ----------------------------------------------------------------------
 # Copy Configuration Files and Setup the Environment
