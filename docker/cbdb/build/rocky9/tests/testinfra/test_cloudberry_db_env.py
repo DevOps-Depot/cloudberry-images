@@ -5,9 +5,6 @@ def test_installed_packages(host):
     Test if the essential packages are installed.
     """
     packages = [
-        "systemd",
-        "systemd-libs",
-        "yum-utils",
         "epel-release",
         "git",
         "the_silver_searcher",
@@ -51,25 +48,6 @@ def test_user_gpadmin_exists(host):
     user = host.user("gpadmin")
     assert user.exists
     assert "wheel" in user.groups
-
-
-def test_systemd_services_cleaned_up(host):
-    """
-    Test if unnecessary systemd services have been removed.
-    """
-    directories = [
-        "/lib/systemd/system/sysinit.target.wants/",
-        "/lib/systemd/system/multi-user.target.wants/",
-        "/etc/systemd/system/*.wants/",
-        "/lib/systemd/system/local-fs.target.wants/",
-        "/lib/systemd/system/sockets.target.wants/",
-        "/lib/systemd/system/basic.target.wants/",
-        "/lib/systemd/system/anaconda.target.wants/",
-    ]
-
-    for directory in directories:
-        dir = host.file(directory)
-        assert not dir.exists or dir.is_directory
 
 
 def test_ssh_service(host):

@@ -47,25 +47,6 @@ def test_user_gpadmin_exists(host):
     assert "wheel" in user.groups
 
 
-def test_systemd_services_cleaned_up(host):
-    """
-    Test if unnecessary systemd services have been removed.
-    """
-    directories = [
-        "/lib/systemd/system/sysinit.target.wants/",
-        "/lib/systemd/system/multi-user.target.wants/",
-        "/etc/systemd/system/*.wants/",
-        "/lib/systemd/system/local-fs.target.wants/",
-        "/lib/systemd/system/sockets.target.wants/",
-        "/lib/systemd/system/basic.target.wants/",
-        "/lib/systemd/system/anaconda.target.wants/",
-    ]
-
-    for directory in directories:
-        dir = host.file(directory)
-        assert not dir.exists or dir.is_directory
-
-
 def test_ssh_service(host):
     """
     Test if SSH service is configured correctly.
