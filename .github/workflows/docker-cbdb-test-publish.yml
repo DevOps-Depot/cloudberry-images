@@ -64,7 +64,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./docker/cbdb/test/${{ matrix.platform }}
-          push: true  # Do not push to registry yet
+          push: true
           tags: |
-            cbdb-test-${{ matrix.platform }}:latest
             ${{ secrets.ECR_PUBLIC_ENDPOINT }}/cbdb/test/${{ matrix.platform }}:latest
