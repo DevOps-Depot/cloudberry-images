@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 # Dockerfile for Cloudberry Database Base Environment
 # ----------------------------------------------------------------------
-# This Dockerfile sets up a Rocky Linux 9-based container to serve as
+# This Dockerfile sets up a Rocky Linux 8-based container to serve as
 # a base environment for evaluating the Cloudberry Database. It installs
 # necessary system utilities, configures the environment for SSH access,
 # and sets up a 'gpadmin' user with sudo privileges. The Cloudberry
@@ -27,8 +27,8 @@
 #   docker run -h cdw -it cloudberry-db-base-env
 # ----------------------------------------------------------------------
 
-# Base image: Rocky Linux 9
-FROM rockylinux/rockylinux:9
+# Base image: Rocky Linux 8
+FROM rockylinux/rockylinux:8
 
 # Argument for configuring the timezone
 ARG TIMEZONE_VAR="America/Los_Angeles"
