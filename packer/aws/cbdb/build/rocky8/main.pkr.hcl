@@ -115,6 +115,11 @@ build {
     script = "scripts/system_add_cbdb_build_rpm_dependencies.sh"
   }
 
+  # Provisioner to add CBDB Xerces-c build dependency
+  provisioner "shell" {
+    script = "../common/scripts/system_add_cbdb_xerces-c_build_dependency.sh"
+  }
+
   # Provisioner to add kernel configurations
   provisioner "shell" {
     script = "../common/scripts/system_add_kernel_configs.sh"

@@ -264,6 +264,18 @@ for ((i=1; i<=30; i++)); do
   fi
 done
 
+# New Step: Apply Xerces-C installation fixes
+echo "Applying Xerces-C installation fixes..."
+scp -i ${PRIVATE_KEY_FILE} -oStrictHostKeyChecking=no "${SCRIPT_DIR}/fix-xerces-c-install.sh" rocky@${HOSTNAME}:/tmp/
+ssh -i ${PRIVATE_KEY_FILE} -oStrictHostKeyChecking=no rocky@${HOSTNAME} "chmod +x /tmp/fix-xerces-c-install.sh && sudo /tmp/fix-xerces-c-install.sh"
+
+if [ $? -ne 0 ]; then
+  echo "Failed to apply Xerces-C installation fixes. Exiting."
+  rename_ami "FAILED"
+  cleanup
+  exit 1
+fi
+
 # Step 12: Run Testinfra tests on the instance
 echo "Running Testinfra tests..."
 pytest -p no:warnings --hosts=rocky@${HOSTNAME} --ssh-identity-file=${PRIVATE_KEY_FILE} "${CURRENT_DIR}/tests/testinfra/"
