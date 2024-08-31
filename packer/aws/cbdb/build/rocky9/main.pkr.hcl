@@ -167,6 +167,7 @@ build {
       "sudo systemctl status docker",
       "sudo systemctl enable docker",
       "sudo usermod -aG docker $(whoami)",
+      "sudo usermod -aG docker gpadmin",
       "sudo dnf install -y https://amazoncloudwatch-agent.s3.amazonaws.com/redhat/amd64/latest/amazon-cloudwatch-agent.rpm jq git",
       "sudo dnf install -y https://s3.${var.region}.amazonaws.com/amazon-ssm-${var.region}/latest/linux_amd64/amazon-ssm-agent.rpm",
       "sudo systemctl start amazon-ssm-agent",
