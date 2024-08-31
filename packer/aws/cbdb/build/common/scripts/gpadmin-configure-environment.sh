@@ -16,7 +16,7 @@ wget -nv -q https://raw.githubusercontent.com/tony/tmux-config/master/.tmux.conf
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" --unattended
 
 # Add Cloudberry entries to gpadmin's .bashrc
-echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cloudberry/greenplum_path.sh ]; then\n  source /usr/local/cloudberry/greenplum_path.sh\nfi' >> /home/gpadmin/.bashrc
+echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cloudberry-db/greenplum_path.sh ]; then\n  source /usr/local/cloudberry-db/greenplum_path.sh\nfi' >> /home/gpadmin/.bashrc
 echo -e 'export GOPATH=~/go' >> /home/gpadmin/.bashrc
 echo -e 'export PATH=${GOPATH}/bin:${PATH}' >> /home/gpadmin/.bashrc
 
