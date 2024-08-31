@@ -21,8 +21,9 @@ echo "$(curl -sL https://dlcdn.apache.org//xerces/c/3/sources/xerces-c-3.2.5.tar
 tar xf "xerces-c-${XERCES_LATEST_RELEASE}.tar.gz"
 rm "xerces-c-${XERCES_LATEST_RELEASE}.tar.gz"
 cd xerces-c-${XERCES_LATEST_RELEASE}
+sudo ln -s "${INSTALL_PREFIX}-${XERCES_LATEST_RELEASE}" "${INSTALL_PREFIX}"
 
-./configure --prefix="${INSTALL_PREFIX}"
+./configure --prefix="${INSTALL_PREFIX}-${XERCES_LATEST_RELEASE}"
 make -j$(nproc)
 make check
 sudo make install -C ~/xerces-c-${XERCES_LATEST_RELEASE}
