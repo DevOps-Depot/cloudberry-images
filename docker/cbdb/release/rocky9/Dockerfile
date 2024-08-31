@@ -64,7 +64,7 @@ RUN dnf install -y \
 RUN /usr/sbin/groupadd gpadmin && \
     /usr/sbin/useradd gpadmin -g gpadmin -G wheel && \
     echo 'gpadmin ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-gpadmin && \
-    echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cloudberry-db/greenplum_path.sh ]; then\n  source /usr/local/cloudberry-db/greenplum_path.sh\n  export COORDINATOR_DATA_DIRECTORY=/data1/coordinator/gpseg-1\nfi' >> /home/gpadmin/.bashrc
+    echo -e '\n# Add Cloudberry entries\nif [ -f /usr/local/cloudberry-db/greenplum_path.sh ]; then\n  source /usr/local/cloudberry-db/greenplum_path.sh\n  export COORDINATOR_DATA_DIRECTORY=/data1/coordinator/gpseg-1\n  export PATH=$PATH:/usr/local/cloudberry-pxf/bin\nfi' >> /home/gpadmin/.bashrc
 
 # ----------------------------------------------------------------------
 # Copy Configuration Files and Setup the Environment
