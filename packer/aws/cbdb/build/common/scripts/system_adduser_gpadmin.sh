@@ -8,7 +8,7 @@ echo "Executing system_adduser_gpadmin.sh..."
 
 # Create a group and user for gpadmin with sudo privileges
 sudo groupadd gpadmin
-sudo useradd -m -g gpadmin gpadmin
+sudo useradd -m -g gpadmin -s /bin/bash gpadmin
 
 # Grant sudo privileges to gpadmin user without requiring a password
 echo 'gpadmin ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/90-gpadmin

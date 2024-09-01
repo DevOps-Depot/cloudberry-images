@@ -69,6 +69,7 @@ fi
 # Derive OS_NAME and VM_TYPE from the HCL file's location
 VM_TYPE=$(basename "$(dirname "$CURRENT_DIR")")  # VM_TYPE is the parent directory name
 OS_NAME=$(basename "$CURRENT_DIR")  # OS_NAME is the current directory name
+OS_USER=$(echo "$OS_NAME" | tr -d '0-9')
 
 # Define AWS region and timestamp for unique naming
 REGION="us-east-1"  # AWS region where the AMI will be created and tested
@@ -264,21 +265,9 @@ for ((i=1; i<=30; i++)); do
   fi
 done
 
-# New Step: Apply Xerces-C installation fixes
-echo "Applying Xerces-C installation fixes..."
-scp -i ${PRIVATE_KEY_FILE} -oStrictHostKeyChecking=no "${SCRIPT_DIR}/fix-xerces-c-install.sh" rocky@${HOSTNAME}:/tmp/
-ssh -i ${PRIVATE_KEY_FILE} -oStrictHostKeyChecking=no rocky@${HOSTNAME} "chmod +x /tmp/fix-xerces-c-install.sh && sudo /tmp/fix-xerces-c-install.sh"
-
-if [ $? -ne 0 ]; then
-  echo "Failed to apply Xerces-C installation fixes. Exiting."
-  rename_ami "FAILED"
-  cleanup
-  exit 1
-fi
-
 # Step 12: Run Testinfra tests on the instance
 echo "Running Testinfra tests..."
-pytest -p no:warnings --hosts=rocky@${HOSTNAME} --ssh-identity-file=${PRIVATE_KEY_FILE} "${CURRENT_DIR}/tests/testinfra/"
+pytest -p no:warnings --hosts=${OS_USER}@${HOSTNAME} --ssh-identity-file=${PRIVATE_KEY_FILE} "${CURRENT_DIR}/tests/testinfra/"
 
 # Step 13: Rename the AMI to indicate that tests have passed
 rename_ami "PASSED"
