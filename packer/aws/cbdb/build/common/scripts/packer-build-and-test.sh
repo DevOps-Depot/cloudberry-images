@@ -69,7 +69,7 @@ fi
 # Derive OS_NAME and VM_TYPE from the HCL file's location
 VM_TYPE=$(basename "$(dirname "$CURRENT_DIR")")  # VM_TYPE is the parent directory name
 OS_NAME=$(basename "$CURRENT_DIR")  # OS_NAME is the current directory name
-OS_USER=$(echo "$OS_NAME" | tr -d '0-9')
+: "${OS_USER:=$(echo "$OS_NAME" | tr -d '0-9')}"
 
 # Define AWS region and timestamp for unique naming
 REGION="us-east-1"  # AWS region where the AMI will be created and tested
