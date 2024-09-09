@@ -51,7 +51,11 @@ sudo apt -o Dpkg::Progress-Fancy=0 -qq install -y \
      pkg-config \
      python3-dev \
      rsync \
-     zlib1g-dev
+     zlib1g-dev \
+     devscripts \
+     quilt \
+     sbuild \
+     tree
 
 # Footer indicating the script execution is complete
 echo "system_add_cbdb_build_dependencies.sh execution completed."
